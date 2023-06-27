@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PFD Diagram Generator</title>
+    <style>
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>PFD Diagram Generator</h1>
+
+    <form id="workflow-form">
+        <div id="workflows">
+            <div class="workflow">
+                <input type="text" name="workflow[]" placeholder="Process Name" required>
+                <input type="text" name="workflow[]" placeholder="Data Entity 1 Name" required>
+                <select name="workflow[]" required>
+                    <option value="" disabled selected>Select Type</option>
+                    <option value="Data">Data</option>
+                    <option value="Information">Information</option>
+                    <option value="Document">Document</option>
+                </select>
+                <input type="text" name="workflow[]" placeholder="Data Entity 2 Name" required>
+                <select name="workflow[]" required>
+                    <option value="" disabled selected>Select Type</option>
+                    <option value="Data">Data</option>
+                    <option value="Information">Information</option>
+                    <option value="Document">Document</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="button" onclick="addWorkflow()">Add Workflow</button>
+        <button type="submit">Generate PFD</button>
+    </form>
+
+    <div id="diagram-container"></div>
+
+    <script>
+        function addWorkflow() {
+            var workflows = document.getElementById('workflows');
+            var workflowDiv = document.createElement('div');
+            workflowDiv.classList.add('workflow');
+            workflowDiv.innerHTML = `
+                <input type="text" name="workflow[]" placeholder="Process Name" required>
+                <input type="text" name="workflow[]" placeholder="Data Entity 1 Name" required>
+                <select name="workflow[]" required>
+                    <option value="" disabled selected>Select Type</option>
+                    <option value="Data">Data</option>
+                    <option value="Information">Information</option>
+                    <option value="Document">Document</option>
+                </select>
+                <input type="text" name="workflow[]" placeholder="Data Entity 2 Name" required>
+                <select name="workflow[]" required>
+                    <option value="" disabled selected>Select Type</option>
+                    <option value="Data">Data</option>
+                    <option value="Information">Information</option>
+                    <option value="Document">Document</option>
+                </select>
+            `;
+            workflows.appendChild(workflowDiv);
+        }
+
+        document.getElementById('workflow-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(event.target);
+            var workflows = [];
+
+            // Iterate over each workflow
+            for (let pair of formData.entries()) {
+                workflows.push(pair[1]);
+            }
+
+            // Validate the workflows
+            if (!validateWorkflows(workflows)) {
+                return;
+            }
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/generate_pfd', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var diagramContainer = document.getElementById('diagram-container');
+                    diagramContainer.innerHTML = `
+                        <img src="data:image/png;base64,${xhr.responseText}">
+                    `;
+                }
+            };
+            xhr.send(formData);
+        });
+
+        function validateWorkflows(workflows) {
+            var valid = true;
+
+            // Ensure workflows have correct formatting
+            for (var i = 0; i < workflows.length; i += 5) {
+                var processName = workflows[i].trim();
+                var entity1Name = workflows[i + 1].trim();
+                var entity1Type = workflows[i + 2].trim();
+                var entity2Name = workflows[i + 3].trim();
+                var entity2Type = workflows[i + 4].trim();
+
+                if (processName === '' || entity1Name === '' || entity1Type === '' || entity2Name === '' || entity2Type === '') {
+                    alert('Please enter all fields for each workflow');
+                    valid = false;
+                    break;
+                }
+
+                if (!validateEntityName(entity1Name) || !validateEntityName(entity2Name)) {
+                    alert('Entity names should only contain alphanumeric characters and spaces');
+                    valid = false;
+                    break;
+                }
+            }
+
+            return valid;
+        }
+
+        function validateEntityName(entityName) {
+            var entityNameRegex = /^[a-zA-Z0-9\s]+$/;
+            return entityNameRegex.test(entityName);
+        }
+    </script>
+</body>
+</html>
