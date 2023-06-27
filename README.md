@@ -17,7 +17,7 @@ The PFD Generator is a web-based application that generates Process Flow Diagram
 
 ## Sample PFD
 
-![PFD Generator](pfd generator.jpg)
+![PFD Generator](pfd_generator.jpg)
 
 The image above is an example of a Process Flow Diagram generated using the PFD Generator application.
 
